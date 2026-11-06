@@ -85,7 +85,7 @@ def parse_date(value):
 
 
 def parse_feed(raw):
-    """Strictly handles RSS 2.0 and Atom; no external entity network loading."""
+    """Handles RSS 1.0/RDF, RSS 2.0 and Atom; no external entity network loading."""
     root = ET.fromstring(raw)
     tag = root.tag.rsplit("}", 1)[-1].lower()
     entries = []
@@ -96,11 +96,12 @@ def parse_feed(raw):
         items = channel.findall("item")
         if tag == "rdf":
             items = root.findall("{*}item")
+        prefix = "{*}" if tag == "rdf" else ""
         for item in items:
-            title = strip_markup(text_of(item, "title"))
-            link = text_of(item, "link")
-            guid = text_of(item, "guid")
-            body = strip_markup(text_of(item, "description"))
+            title = strip_markup(text_of(item, prefix + "title"))
+            link = text_of(item, prefix + "link")
+            guid = text_of(item, prefix + "guid")
+            body = strip_markup(text_of(item, prefix + "description"))
             pub = parse_date(text_of(item, "pubDate") or text_of(item, "{*}date"))
             if title:
                 entries.append({"title": title, "link": link, "guid": guid, "summary": body[:800], "published": pub})
